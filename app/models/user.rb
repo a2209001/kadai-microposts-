@@ -11,7 +11,10 @@ class User < ApplicationRecord
     has_many :followings, through: :relationships, source: :follow
     has_many :reverses_of_relationship, class_name: 'Relationship', foreign_key: 'follow_id'
     has_many :followers, through: :reverses_of_relationship, source: :user
-    
+    #自分がお気に入りにしたmicropostsへのいいね
+    has_many :favorites
+    has_many :likes, through: :favorites, source: :micropost 
+
     def follow(other_user)
         unless self == other_user
           self.relationships.find_or_create_by(follow_id: other_user.id)
@@ -27,8 +30,33 @@ class User < ApplicationRecord
       self.followings.include?(other_user)
     end 
     
+    #micropostのfavorite/unfavoriteメソッド追加
+    def favorite(micropost)
+      unless self == micropost
+        self.favorites.find_or_create_by(micropost_id: micropost.id)
+      end 
+    end
+
+    def unfavorite(micropost)
+      favorite = self.favorites.find_by(micropost_id: micropost.id)
+      favorite.destroy if favorite
+    end
+
+    def favorite?(micropost)
+      self.favorites.pluck(:micropost_id).include?(micropost.id)
+    end
+    #micropostのfavorite/unfavoriteメソッド追加終わり
+    
     def feed_microposts
       Microposts.where(user_id: self/following_ids + [self.id])
     end 
     
 end
+
+#rails c検証用
+#user1 = User.find(1)
+#micropost6 = Micropost.find(6)
+#user1.favorite(micropost6)
+#user1.reload 
+#user1.likes
+#user1.favorite?(micropost6)
