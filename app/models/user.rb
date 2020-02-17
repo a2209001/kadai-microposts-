@@ -48,7 +48,7 @@ class User < ApplicationRecord
     #micropostのfavorite/unfavoriteメソッド追加終わり
     
     def feed_microposts
-      Microposts.where(user_id: self/following_ids + [self.id])
+      Micropost.where(user_id: self.following_ids + [self.id])
     end 
     
 end
